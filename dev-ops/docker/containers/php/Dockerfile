@@ -17,11 +17,11 @@ RUN apk add --update \
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
-    gd zip curl intl pdo pdo_mysql iconv mcrypt mbstring
+    gd zip curl intl pdo pdo_mysql iconv mcrypt mbstring opcache
 
-#RUN pecl install -o -f apcu && docker-php-ext-enable apcu
+RUN pecl install -o -f apcu && docker-php-ext-enable apcu
 #RUN pecl install -o -f xdebug && docker-php-ext-enable xdebug
-#RUN pecl install -o -f redis && docker-php-ext-enable redis
+RUN pecl install -o -f redis && docker-php-ext-enable redis
 RUN rm -rf /tmp/pear
 
 RUN mkdir /tmp/ioncube && \
