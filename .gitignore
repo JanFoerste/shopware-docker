@@ -2,6 +2,7 @@
 /.psh.yaml
 /.psh.yaml.override
 /shopware
+/tmp
 
 # dev-ops
 /docker-compose.override.yml

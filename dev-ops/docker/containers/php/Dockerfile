@@ -1,4 +1,4 @@
-FROM php:7.0-fpm-alpine
+FROM php:7.0-fpm-alpine as builder
 
 RUN apk add --update \
     libcurl \
@@ -17,11 +17,11 @@ RUN apk add --update \
 
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) \
-    gd zip curl intl pdo pdo_mysql iconv mcrypt mbstring opcache
+    gd zip curl intl pdo pdo_mysql iconv mcrypt mbstring
 
-RUN pecl install -o -f apcu && docker-php-ext-enable apcu
-RUN pecl install -o -f xdebug && docker-php-ext-enable xdebug
-RUN pecl install redis && docker-php-ext-enable redis
+#RUN pecl install -o -f apcu && docker-php-ext-enable apcu
+#RUN pecl install -o -f xdebug && docker-php-ext-enable xdebug
+#RUN pecl install -o -f redis && docker-php-ext-enable redis
 RUN rm -rf /tmp/pear
 
 RUN mkdir /tmp/ioncube && \
@@ -31,10 +31,11 @@ RUN mkdir /tmp/ioncube && \
     tar xvf /tmp/ioncube/ioncube_loaders_lin_x86-64.tar.gz && \
     cd `php -i | grep extension_dir | cut -d' ' -f 5` && \
     cp /tmp/ioncube/ioncube/ioncube_loader_lin_7.0.so /usr/local/ioncube/ioncube_loader_lin_7.0.so && \
-    echo zend_extension=/usr/local/ioncube/ioncube_loader_lin_7.1.so > /usr/local/etc/php/conf.d/00-ioncube.ini && \
+    echo zend_extension=/usr/local/ioncube/ioncube_loader_lin_7.0.so > /usr/local/etc/php/conf.d/00-ioncube.ini && \
     rm -rf /tmp/ioncube/
 
-ADD shopware.ini /usr/local/etc/php/conf.d/shopware.ini
+COPY php.ini /usr/local/etc/php/
+COPY shopware.ini /usr/local/etc/php/conf.d/shopware.ini
 
 WORKDIR /var/www/app
 
@@ -43,21 +44,22 @@ RUN php composer-setup.php --install-dir=/usr/local/bin/ --filename=composer
 RUN php -r "unlink('composer-setup.php');"
 
 ARG SW_VERSION=latest
-RUN git clone https://github.com/shopware/shopware.git shopware
+RUN git clone https://github.com/shopware/shopware.git ./shopware
 RUN if [ "${SW_VERSION}" != "latest" ] ; then git checkout "${SW_VERSION}" ; fi
 
 WORKDIR /var/www/app/shopware
+
+RUN wget -O test_images.zip http://releases.s3.shopware.com.s3-eu-west-1.amazonaws.com/test_images.zip && \
+    unzip test_images.zip
 
 ARG DB_USERNAME=app
 ARG DB_PASSWORD=app
 COPY config.php .
 
 RUN composer install --no-interaction --optimize-autoloader --no-suggest
-RUN php bin/console sw:cache:clear
-RUN php bin/console sw:database:setup --steps=drop,create,import,setupShop --shopUrl=https://localhost:8080
-RUN php bin/console sw:database:setup --steps=importDemodata,setupShop --shopUrl=https://localhost:8080
-RUN php bin/console sw:snippets:to:db --include-plugins
-RUN php bin/console sw:theme:initialize
-RUN php bin/console sw:admin:create --name="Demo user" --email=demo@example.com --username=demo --password=demo --locale=de_DE
-RUN echo 1 > recovery/install/data/install.lock
-RUN php bin/console sw:firstrunwizard:disable
+
+COPY entrypoint wait-for /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint /usr/local/bin/wait-for
+
+EXPOSE 9000
+CMD ["entrypoint"]

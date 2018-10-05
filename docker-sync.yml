@@ -1,0 +1,5 @@
+version: 2
+syncs:
+  shopware-sync:
+    src: ./tmp
+    sync_strategy: native_osx
