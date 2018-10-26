@@ -1,18 +1,29 @@
 #!/bin/sh
 
 cd /var/www/app/shopware
+INSTALL_FILE="recovery/install/data/install.lock"
+
+firstRun () {
+    if grep -q 1 "${INSTALL_FILE}"; then
+        echo "Shopware already installed" && \
+        return
+    else
+        /usr/local/bin/php bin/console sw:cache:clear && \
+        /usr/local/bin/php bin/console sw:database:setup --steps=drop,create,import,setupShop --host=docker.shopware.local:8080 && \
+        /usr/local/bin/php bin/console sw:database:setup --steps=importDemodata,setupShop --host=docker.shopware.local:8080 && \
+        /usr/local/bin/php bin/console sw:snippets:to:db --include-plugins && \
+        /usr/local/bin/php bin/console sw:theme:initialize && \
+        /usr/local/bin/php bin/console sw:admin:create --name="Demo user" --email=demo@example.com --username=demo --password=demo --locale=de_DE && \
+        /usr/local/bin/php bin/console sw:firstrunwizard:disable && \
+        /usr/local/bin/php bin/console sw:media:migrate && \
+        /usr/local/bin/php bin/console sw:thumbnail:generate && \
+        echo 1 > "${INSTALL_FILE}" && \
+        chown -R www-data:www-data . && \
+        echo "First run wizard completed" && \
+        return
+    fi
+}
 
 /usr/local/bin/wait-for mysql:3306 -t 300 -- echo "MySQL running" && \
-/usr/local/bin/php bin/console sw:cache:clear && \
-/usr/local/bin/php bin/console sw:database:setup --steps=drop,create,import,setupShop --host=docker.shopware.local:8080 && \
-/usr/local/bin/php bin/console sw:database:setup --steps=importDemodata,setupShop --host=docker.shopware.local:8080 && \
-/usr/local/bin/php bin/console sw:snippets:to:db --include-plugins && \
-/usr/local/bin/php bin/console sw:theme:initialize && \
-/usr/local/bin/php bin/console sw:admin:create --name="Demo user" --email=demo@example.com --username=demo --password=demo --locale=de_DE && \
-/usr/local/bin/php bin/console sw:firstrunwizard:disable && \
-/usr/local/bin/php bin/console sw:media:migrate && \
-/usr/local/bin/php bin/console sw:thumbnail:generate && \
-echo 1 > recovery/install/data/install.lock && \
-chown -R www-data:www-data . && \
-echo "First run wizard completed" && \
+firstRun && \
 php-fpm

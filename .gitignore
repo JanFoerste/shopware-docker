@@ -1,16 +1,2 @@
 /.idea
-/.psh.yaml
-/.psh.yaml.override
-/shopware
-/tmp
-
-# dev-ops
-/docker-compose.override.yml
-/dev-ops/docker/containers/mysql/createuser.sh
-/dev-ops/docker/containers/php7/createuser.sh
-/dev-ops/docker/_volumes
-!dev-ops/docker/_volumes/.gitkeep
-/plugins/
-!/plugins/.gitkeep
-/plugins_old/
-!/plugins_old/.gitkeep
+/app/shopware

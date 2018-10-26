@@ -4,12 +4,14 @@ services:
   php:
     build: dev-ops/docker/containers/php
     volumes:
-    - shopware-sync:/var/www/app:rw
+    - shopware:/var/www/app:z,cached
     depends_on:
     - mysql
     environment:
+      TERM: xterm
       DB_USERNAME: app
       DB_PASSWORD: app
+      PHP_IDE_CONFIG: serverName=shopware
     networks:
       shopware:
         aliases:
@@ -18,7 +20,9 @@ services:
   nginx:
     build: dev-ops/docker/containers/nginx
     volumes:
-    - shopware-sync:/var/www/app:rw
+    - shopware:/var/www/app:z,ro,cached
+    environment:
+      TERM: xterm
     depends_on:
     - php
     ports:
@@ -35,14 +39,23 @@ services:
       MYSQL_DATABASE: shopware
       MYSQL_USER: app
       MYSQL_PASSWORD: app
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
     networks:
       shopware:
         aliases:
         - mysql
 
 volumes:
-  shopware-sync:
-    external: true
+  shopware:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ${PWD}/app
+  db:
 
 networks:
   shopware:
