@@ -39,6 +39,7 @@ RUN mkdir /tmp/ioncube && \
     rm -rf /tmp/ioncube/
 
 COPY php.ini /usr/local/etc/php/
+COPY zzz-shopware.conf /usr/local/etc/php-fpm.d/
 COPY shopware.ini /usr/local/etc/php/conf.d/shopware.ini
 
 WORKDIR /var/www/app
