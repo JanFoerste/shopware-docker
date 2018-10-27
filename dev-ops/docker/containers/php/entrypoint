@@ -8,6 +8,12 @@ firstRun () {
         echo "Shopware already installed" && \
         return
     else
+        git clone https://github.com/shopware/shopware.git ${INSTALL_DIR} && \
+        mv /config.php ${INSTALL_DIR} && \
+        mv /test_images.zip ${INSTALL_DIR} && \
+        cd ${INSTALL_DIR} && \
+        unzip test_images.zip && \
+        composer install --no-interaction --optimize-autoloader --no-suggest && \
         /usr/local/bin/php ${INSTALL_DIR}bin/console sw:cache:clear && \
         /usr/local/bin/php ${INSTALL_DIR}bin/console sw:database:setup --steps=drop,create,import,setupShop --host=docker.shopware.local:8080 && \
         /usr/local/bin/php ${INSTALL_DIR}bin/console sw:database:setup --steps=importDemodata,setupShop --host=docker.shopware.local:8080 && \

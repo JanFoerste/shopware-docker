@@ -4,14 +4,14 @@ services:
   php:
     build: dev-ops/docker/containers/php
     volumes:
-    - shopware:/var/www/app:z,cached
+    - shopware:/var/www/app:cached
     depends_on:
     - mysql
     environment:
       TERM: xterm
       DB_USERNAME: app
       DB_PASSWORD: app
-      PHP_IDE_CONFIG: serverName=shopware
+      PHP_IDE_CONFIG: serverName=shope
     networks:
       shopware:
         aliases:
@@ -20,7 +20,7 @@ services:
   nginx:
     build: dev-ops/docker/containers/nginx
     volumes:
-    - shopware:/var/www/app:z,ro,cached
+    - shopware:/var/www/app:ro,cached
     environment:
       TERM: xterm
     depends_on:

@@ -47,20 +47,12 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 RUN php composer-setup.php --install-dir=/usr/local/bin/ --filename=composer
 RUN php -r "unlink('composer-setup.php');"
 
-ARG SW_VERSION=latest
-RUN git clone https://github.com/shopware/shopware.git ./shopware
-RUN if [ "${SW_VERSION}" != "latest" ] ; then git checkout "${SW_VERSION}" ; fi
+#ARG SW_VERSION=latest
+#RUN if [ "${SW_VERSION}" != "latest" ] ; then git checkout "${SW_VERSION}" ; fi
 
-WORKDIR /var/www/app/shopware
+RUN wget -O /test_images.zip http://releases.s3.shopware.com.s3-eu-west-1.amazonaws.com/test_images.zip
 
-RUN wget -O test_images.zip http://releases.s3.shopware.com.s3-eu-west-1.amazonaws.com/test_images.zip && \
-    unzip test_images.zip
-
-ARG DB_USERNAME=app
-ARG DB_PASSWORD=app
-COPY config.php .
-
-RUN composer install --no-interaction --optimize-autoloader --no-suggest
+COPY config.php /
 
 COPY entrypoint wait-for /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint /usr/local/bin/wait-for
