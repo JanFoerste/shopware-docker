@@ -4,7 +4,7 @@ services:
   php:
     build: dev-ops/docker/containers/php
     volumes:
-    - shopware:/var/www/app:cached
+    - shopware:/var/www/app:delegated
     depends_on:
     - mysql
     environment:
@@ -20,7 +20,7 @@ services:
   nginx:
     build: dev-ops/docker/containers/nginx
     volumes:
-    - shopware:/var/www/app:ro,cached
+    - shopware:/var/www/app:ro,delegated
     environment:
       TERM: xterm
     depends_on:
@@ -47,6 +47,15 @@ services:
       shopware:
         aliases:
         - mysql
+
+  mail:
+    image: tophfr/mailcatcher
+    ports:
+      - 8081:80
+    networks:
+      shopware:
+        aliases:
+        - mail
 
 volumes:
   shopware:
