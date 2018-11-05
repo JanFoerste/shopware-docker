@@ -11,7 +11,7 @@ services:
       TERM: xterm
       DB_USERNAME: app
       DB_PASSWORD: app
-      PHP_IDE_CONFIG: serverName=shope
+      PHP_IDE_CONFIG: serverName=shopware
     networks:
       shopware:
         aliases:
